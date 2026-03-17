@@ -6,30 +6,46 @@
 
 ## 工作原理
 
+### Skill 方式（推荐）
+
+将本插件作为 Skill 集成后，Agent 会在合适时机主动调用 `sc_send.py` 脚本，通过 [Server 酱 API](https://sctapi.ftqq.com) 将指定标题和内容推送到微信。Agent 可自由控制推送时机、标题与正文，灵活性更高。
+
 ### Hook 方式
 
-openclaw 在 Agent 完成任务后会触发 `message:received` 生命周期事件。本插件注册为一个 Hook，监听 Agent 回复中的 `<title>` 和 `<summary>` 标签，提取内容后调用 Server 酱 API 推送到微信。
-
-### Skill 方式
-
-将本插件作为 Skill 集成后，Agent 可能会在合适的时候主动调用推送功能，将指定标题和内容发送到微信。
+openclaw 在 Agent 完成任务后触发 `message:received` 生命周期事件。Hook 会监听 Agent 回复中的 `<title>` 和 `<summary>` 标签并自动推送，无需 Agent 主动调用，但依赖结构化输出格式。
 
 ---
 
 ## 快速开始
 
-### 第一步：配置 SCKEY
+### 第一步：配置 SendKey
 
-前往 [Server 酱官方文档](https://sct.ftqq.com/sendkey) 获取你的 SCKEY，然后将其写入环境变量：
+前往 [Server 酱 SendKey 页面](https://sct.ftqq.com/sendkey) 获取你的 SendKey，然后写入环境变量：
 
 ```bash
-echo 'export SERVERCHAN_SCKEY=你的SCKEY' >> ~/.bashrc
+echo 'export SERVERCHAN_SENDKEY=你的SendKey' >> ~/.bashrc
 source ~/.bashrc
 ```
 
 ---
 
-### 方式一：Hook 方式（推荐）
+### 方式一：Skill 方式（推荐）
+
+将本项目复制到 Agent 的 skills 目录下：
+
+```bash
+cp -r serverchan ~/.openclaw/skills/
+```
+
+> 默认 skills 路径：`~/.openclaw/skills`
+
+安装完成后，Agent 即可主动调用推送脚本。你也可以在对话中直接说「把结果推送到我的微信」来触发推送。
+
+推送脚本的详细参数说明见 [SKILL.md](./SKILL.md)。
+
+---
+
+### 方式二：Hook 方式
 
 **1. 配置 Agent 总结规则**
 
@@ -46,8 +62,6 @@ source ~/.bashrc
 
 **2. 安装 Hook**
 
-将本项目复制到 openclaw 的 hooks 目录下：
-
 ```bash
 cp -r serverchan ~/.openclaw/hooks/
 ```
@@ -57,10 +71,7 @@ cp -r serverchan ~/.openclaw/hooks/
 **3. 启用 Hook**
 
 ```bash
-# 验证 hook 已被发现
-openclaw hooks serverchan
-
-# 启用它
+openclaw hooks list
 openclaw hooks enable serverchan
 ```
 
@@ -68,19 +79,3 @@ openclaw hooks enable serverchan
 
 - **macOS**：重启菜单栏中的 openclaw 应用
 - **其他平台**：重启你的 openclaw 开发进程
-
-**5. 触发测试**
-
-通过你的消息渠道发送 `/new`，完成一次任务后即可收到微信推送。
-
----
-
-### 方式二：Skill 方式
-
-将本项目复制到 Agent 的 skills 目录下，Agent 即可将推送功能作为工具主动调用：
-
-```bash
-cp -r serverchan ~/.openclaw/skills/
-```
-
-> 默认 skills 路径：`~/.openclaw/skills`
